@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+my $ending = 860;
+my $frameno = 0;
+my $step = 0.125;
+
+my $plotscript;
+{
+  local $/ = undef;
+  open PS, "plotscript.gnu" or die;
+  $plotscript = <PS>;
+  close PS or die;
+}
+
+while ( $ending <= 940 ) {
+  $frameno++;
+
+  open PLOT, ">/tmp/plotcmd.gnu" or die;
+  printf PLOT qq{ending = %.2f\n}, $ending;
+  printf PLOT qq{outputname = "frames/frame%05d.png"\n\n}, $frameno;
+  print PLOT $plotscript;
+  close PLOT or die;
+
+  system qq{gnuplot /tmp/plotcmd.gnu};
+
+  $ending += $step;
+
+  print STDERR "$ending\n";
+}
+
+#system q{png2yuv -j frames/frame%05d.png -f 25 -I p -b 1 | mpeg2enc -o frames.m2v -a 1 -f 3 -b 10000 --no-constraints -H};

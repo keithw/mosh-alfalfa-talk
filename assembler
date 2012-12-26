@@ -1,0 +1,21 @@
+#!/usr/bin/perl -w
+
+system q{convert -density 600 -geometry 1024x768 slides.pdf slideframes/frame.png};
+
+my $frameno = 0;
+sub grab {
+  my ( $num, $pattern, $offset ) = @_;
+  for ( $offset .. $offset + $num - 1 ) {
+    my $filename = sprintf $pattern, $_;
+    system qq{cp $filename assembled-frames/frame$frameno.png};
+    $frameno++;
+  }
+}
+
+grab( 4, "slideframes/frame-%d.png", 0 );
+grab( 641, "timeplot/skype-frames/frame%05d.png", 1 );
+grab( 10, "slideframes/frame-%d.png", 4 );
+grab( 641, "timeplot/all3-frames/frame%05d.png", 1 );
+grab( 34, "slideframes/frame-%d.png", 14 );
+
+system q{png2yuv -j assembled-frames/frame%d.png -f 25 -I p -b 0 | mpeg2enc -o frames.m2v -a 1 -f 3 -b 25000 -V 4000 --no-constraints -H};
